@@ -1,0 +1,11 @@
+LIBRARY BlockCompression
+EXPORTS
+    GetVersion
+    QuickLzCompress
+    QuickLzDecompress
+    qlz_size_decompressed
+    ZSTD_compress
+    ZSTD_decompress
+    ZSTD_getDecompressedSize
+    bgzf_compress
+    bgzf_decompress

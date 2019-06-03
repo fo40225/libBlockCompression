@@ -9,36 +9,50 @@
 // 這樣一來，原始程式檔中包含此檔案的其他任何專案，
 // 都會將 BLOCKCOMPRESSION_API 函式視為從 DLL 匯入，
 // 而此 DLL 會將使用此巨集定義的符號視為匯出。
-#ifdef BLOCKCOMPRESSION_EXPORTS
-	#define BLOCKCOMPRESSION_API __declspec(dllexport)
+//#ifdef BLOCKCOMPRESSION_EXPORTS
+//	#define BLOCKCOMPRESSION_API __declspec(dllexport)
+//#else
+//	#define BLOCKCOMPRESSION_API __declspec(dllimport)
+//#endif
+
+// https://gcc.gnu.org/wiki/Visibility
+#if defined _WIN32
+	#ifdef BlockCompression_EXPORTS
+		#ifdef __GNUC__
+			#define BLOCKCOMPRESSION_API __attribute__ ((dllexport))
+		#else
+			#define BLOCKCOMPRESSION_API __declspec(dllexport) // Note: actually gcc seems to also supports this syntax.
+		#endif
+	#else
+		#ifdef __GNUC__
+			#define BLOCKCOMPRESSION_API __attribute__ ((dllimport))
+		#else
+			#define BLOCKCOMPRESSION_API __declspec(dllimport) // Note: actually gcc seems to also supports this syntax.
+		#endif
+	#endif
 #else
-	#ifdef _MSC_VER
-		#define BLOCKCOMPRESSION_API __declspec(dllimport)
+	#if __GNUC__ >= 4
+		#define BLOCKCOMPRESSION_API __attribute__ ((visibility ("default")))
 	#else
 		#define BLOCKCOMPRESSION_API
 	#endif
 #endif
 
 // TODO: 在此參考您的程式所需的其他標頭。
-#include <cstdint>
+#include <stdlib.h>
 #include <cstddef>
+#include <cstdint>
 
-namespace QuickLZ {
-	#include "quicklz.h"
-}
+#include "quicklz.h"
 
-namespace zstd {
-	#include "zstd.h"
-}
+#include "zstd.h"
 
-namespace htslib {
-	#include "htslib/bgzf.h"
-}
+#include "htslib/bgzf.h"
 
 extern "C" {
 	BLOCKCOMPRESSION_API char* GetVersion();
-	BLOCKCOMPRESSION_API size_t QuickLzCompress(const void* source, char* destination, size_t size, QuickLZ::qlz_state_compress* state);
-	BLOCKCOMPRESSION_API size_t QuickLzDecompress(const char* source, void* destination, QuickLZ::qlz_state_decompress* state);
+	BLOCKCOMPRESSION_API size_t QuickLzCompress(char* source, int sourceLen, char* destination, int destinationLen);
+	BLOCKCOMPRESSION_API size_t QuickLzDecompress(char* source, char* destination, int destinationLen);
 	BLOCKCOMPRESSION_API size_t qlz_size_decompressed(const char* source);
 	BLOCKCOMPRESSION_API size_t ZSTD_compress(void* dst, size_t dstCapacity,
 		const void* src, size_t srcSize,
@@ -48,9 +62,6 @@ extern "C" {
 		const void* src, size_t compressedSize);
 
 	BLOCKCOMPRESSION_API unsigned long long ZSTD_getDecompressedSize(const void* src, size_t srcSize);
-
 	BLOCKCOMPRESSION_API int bgzf_compress(void* dst, size_t* dlen, const void* src, size_t slen, int level);
-
 	BLOCKCOMPRESSION_API int bgzf_decompress(void* dst, size_t* dlen, const void* src, size_t slen);
-
 }

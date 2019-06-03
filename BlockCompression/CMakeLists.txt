@@ -4,20 +4,38 @@
 cmake_minimum_required (VERSION 3.8)
 set (CMAKE_CXX_STANDARD 11)
 
-IF(MSVC)
-	add_compile_definitions(BLOCKCOMPRESSION_EXPORTS)
+# 將來源新增到此專案的可執行檔。
+add_library(BlockCompression SHARED "BlockCompression.cpp")
+
+target_link_libraries(BlockCompression -Wl,--whole-archive quicklz -Wl,--no-whole-archive)
+target_link_libraries(BlockCompression -Wl,--whole-archive zstd -Wl,--no-whole-archive)
+target_link_libraries(BlockCompression -Wl,--whole-archive htslib -Wl,--no-whole-archive)
+
+IF(MINGW)
+	 target_link_libraries(BlockCompression ws2_32)
 ENDIF()
 
-# 將來源新增到此專案的可執行檔。
+find_package(ZLIB)
+IF(ZLIB_FOUND)
+	 target_link_libraries(BlockCompression ${ZLIB_LIBRARIES})
+ENDIF()
 
-file(GLOB BLOCKCOMPRESSION_SRC
-	"*.cpp"
-	"*.h"
-	"*.c"
-)
+find_package(BZip2)
+IF(BZIP2_FOUND)
+	 target_link_libraries(BlockCompression ${BZIP2_LIBRARIES})
+ENDIF()
 
-add_library(BlockCompression SHARED ${BLOCKCOMPRESSION_SRC})
-target_link_libraries(BlockCompression zstd)
-target_link_libraries(BlockCompression htslib)
+find_package(LibLZMA)
+IF(LIBLZMA_FOUND)
+	 target_link_libraries(BlockCompression ${LIBLZMA_LIBRARIES})
+ENDIF()
+
+#if(MSVC)
+#    SET_TARGET_PROPERTIES(BlockCompression PROPERTIES LINK_FLAGS /DEF:${CMAKE_CURRENT_SOURCE_DIR}/deffile.def)
+#endif()
+
+IF(MINGW)
+	SET_TARGET_PROPERTIES(BlockCompression PROPERTIES LINK_FLAGS ${CMAKE_CURRENT_SOURCE_DIR}/deffile.def)
+endif()
 
 # TODO: 新增測試，並視需要安裝目標。

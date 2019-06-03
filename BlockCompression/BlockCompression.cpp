@@ -7,31 +7,16 @@ char* GetVersion() {
 	return "1.2.8.zlib-ng";
 }
 
-size_t QuickLzCompress(const void* source, char* destination, size_t size, QuickLZ::qlz_state_compress* state) {
-	return QuickLZ::qlz_compress(source, destination, size, state);
+size_t QuickLzCompress(char* source, int sourceLen, char* destination, int destinationLen) {
+	qlz_state_compress* state_compress = (qlz_state_compress*)malloc(sizeof(qlz_state_compress));
+	return qlz_compress(source, destination, sourceLen, state_compress);
 }
 
-size_t QuickLzDecompress(const char* source, void* destination, QuickLZ::qlz_state_decompress* state) {
-	return QuickLZ::qlz_decompress(source, destination, state);
-}
-
-size_t ZSTD_compress(void* dst, size_t dstCapacity, const void* src, size_t srcSize, int compressionLevel) {
-	return zstd::ZSTD_compress(dst, dstCapacity, src, srcSize, compressionLevel);
-}
-
-size_t ZSTD_decompress(void* dst, size_t dstCapacity, const void* src, size_t compressedSize)
-{
-	return zstd::ZSTD_decompress(dst, dstCapacity, src, compressedSize);
-}
-
-unsigned long long ZSTD_getDecompressedSize(const void* src, size_t srcSize) {
-	return zstd::ZSTD_getDecompressedSize(src, srcSize);
-}
-
-int bgzf_compress(void* dst, size_t* dlen, const void* src, size_t slen, int level) {
-	return htslib::bgzf_compress(dst, dlen, src, slen, level);
+size_t QuickLzDecompress(char* source, char* destination, int destinationLen) {
+	qlz_state_decompress* state_decompress = (qlz_state_decompress*)malloc(sizeof(qlz_state_decompress));
+	return qlz_decompress(source, destination, state_decompress);
 }
 
 int bgzf_decompress(void* dst, size_t* dlen, const void* src, size_t slen) {
-	return htslib::bgzf_compress(dst, dlen, src, slen, 0);
+	return bgzf_compress(dst, dlen, src, slen, 0);
 }
